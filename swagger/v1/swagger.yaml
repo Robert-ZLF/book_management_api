@@ -242,13 +242,13 @@ paths:
           required: true
           schema:
             type: integer
-            example: 2024
+            example: 2025
         - name: month
           in: query
           required: true
           schema:
             type: integer
-            example: 10
+            example: 9
       responses:
         "200":
           description: Monthly report retrieved successfully
@@ -257,8 +257,8 @@ paths:
               example:
                 user_id: 1
                 report_type: "monthly"
-                year: 2024
-                month: 10
+                year: 2025
+                month: 9
                 total_books_borrowed: 2
                 total_spent: 10.00
         "404":
@@ -284,7 +284,7 @@ paths:
           required: true
           schema:
             type: integer
-            example: 2024
+            example: 2025
       responses:
         "200":
           description: Yearly report retrieved successfully
@@ -293,7 +293,7 @@ paths:
               example:
                 user_id: 1
                 report_type: "yearly"
-                year: 2024
+                year: 2025
                 total_books_borrowed: 2
                 total_spent: 10.00
         "404":
@@ -323,7 +323,7 @@ paths:
           schema:
             type: string
             format: date
-            example: "2024-01-01"
+            example: "2025-01-01"
         - name: end_date
           in: query
           required: true
@@ -331,7 +331,7 @@ paths:
           schema:
             type: string
             format: date
-            example: "2024-12-31"
+            example: "2025-12-31"
       responses:
         "200":
           description: Book income statistics retrieved successfully
@@ -341,8 +341,8 @@ paths:
                 book_item_id: 1
                 book_title: "Ruby on Rails Guide"
                 statistics_period:
-                  start_date: "2024-01-01"
-                  end_date: "2024-12-31"
+                  start_date: "2025-01-01"
+                  end_date: "2025-12-31"
                 total_income: 125.00
                 record_count: 25
         "400":
