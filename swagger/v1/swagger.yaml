@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: Book Management System API
+  description: API for managing users, books, borrow/return, and user reports
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+paths:
+  # 1. Create a new user
+  /users:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+              properties:
+                user:
+                  type: object
+                  required:
+                    - name
+                    - balance
+                  properties:
+                    name:
+                      type: string
+                      example: "Alice Smith"
+                    balance:
+                      type: number
+                      format: float
+                      example: 100.00
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              example:
+                user_id: 1
+                name: "Alice Smith"
+                balance: 100.00
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              example:
+                errors:
+                  [
+                    "Balance must be greater than or equal to 0",
+                    "Name can't be blank",
+                  ]
+
+  # 2. Get user account status (balance + current books)
+  /users/{id}:
+    get:
+      summary: Get user account status (balance + current books)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: User status retrieved successfully
+          content:
+            application/json:
+              example:
+                user_id: 1
+                name: "Alice Smith"
+                balance: 100.00
+                current_books:
+                  - book_id: 1
+                    title: "Ruby on Rails Guide"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: "User not found"
+
+  # 3. Create a new BookItem
+  /book_items:
+    post:
+      summary: Create a new BookItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - book_item
+              properties:
+                book_item:
+                  type: object
+                  required:
+                    - title
+                    - stock_quantity
+                  properties:
+                    title:
+                      type: string
+                      example: "Ruby on Rails Guide"
+                    stock_quantity:
+                      type: integer
+                      example: 5
+                    borrow_count:
+                      type: integer
+                      example: 0
+      responses:
+        "201":
+          description: BookItem created successfully
+          content:
+            application/json:
+              example:
+                book_id: 1
+                title: "Ruby on Rails Guide"
+                stock_quantity: 5
+                borrow_count: 0
+                current_borrowers: []
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              example:
+                errors:
+                  [
+                    "Title can't be blank",
+                    "Stock quantity must be greater than or equal to 0",
+                  ]
+
+  # 4. Borrow a BookItem
+  /borrow:
+    post:
+      summary: Borrow a BookItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - book_item_id
+                - fee
+              properties:
+                user_id:
+                  type: integer
+                  example: 1
+                book_item_id:
+                  type: integer
+                  example: 1
+                fee:
+                  type: number
+                  format: float
+                  example: 5.00
+      responses:
+        "200":
+          description: Book borrowed successfully
+          content:
+            application/json:
+              example:
+                message: "Book borrowed successfully"
+                user_id: 1
+                book_item_id: 1
+                remaining_balance: 100.00
+                borrow_fee: 5.00
+        "400":
+          description: Bad request (e.g., no stock, already borrowed)
+          content:
+            application/json:
+              example:
+                error: "No available copies of the book"
+        "404":
+          description: User or BookItem not found
+          content:
+            application/json:
+              example:
+                error: "User not found"
+
+  # 5. Return a BookItem
+  /return:
+    post:
+      summary: Return a BookItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - book_item_id
+              properties:
+                user_id:
+                  type: integer
+                  example: 1
+                book_item_id:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          description: Book returned successfully
+          content:
+            application/json:
+              example:
+                message: "Book returned successfully"
+                user_id: 1
+                book_item_id: 1
+                fee_paid: 5.00
+                remaining_balance: 95.00
+        "400":
+          description: Bad request (e.g., no active borrow record, insufficient balance)
+          content:
+            application/json:
+              example:
+                error: "Insufficient balance to pay the fee"
+        "404":
+          description: User or BookItem not found
+          content:
+            application/json:
+              example:
+                error: "BookItem not found"
+
+  # 6. Monthly report
+  /users/{user_id}/reports/monthly:
+    get:
+      summary: Get user's monthly report
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 2024
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 10
+      responses:
+        "200":
+          description: Monthly report retrieved successfully
+          content:
+            application/json:
+              example:
+                user_id: 1
+                report_type: "monthly"
+                year: 2024
+                month: 10
+                total_books_borrowed: 2
+                total_spent: 10.00
+        "404":
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: "User not found"
+
+  # 7. Yearly report
+  /users/{user_id}/reports/yearly:
+    get:
+      summary: Get user's yearly report
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 2024
+      responses:
+        "200":
+          description: Yearly report retrieved successfully
+          content:
+            application/json:
+              example:
+                user_id: 1
+                report_type: "yearly"
+                year: 2024
+                total_books_borrowed: 2
+                total_spent: 10.00
+        "404":
+          description: User not found
+          content:
+            application/json:
+              example:
+                error: "User not found"
+
+  # 8. Book income statistics
+  /book_items/{book_item_id}/income:
+    get:
+      summary: Get book income statistics
+      description: Get income statistics for a specific book item within a date range
+      parameters:
+        - name: book_item_id
+          in: path
+          required: true
+          description: ID of the book item to get income statistics for
+          schema:
+            type: integer
+            example: 1
+        - name: start_date
+          in: query
+          required: true
+          description: "Start date of the period to get income statistics for (format: YYYY-MM-DD)"
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: end_date
+          in: query
+          required: true
+          description: "End date of the period to get income statistics for (format: YYYY-MM-DD)"
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+      responses:
+        "200":
+          description: Book income statistics retrieved successfully
+          content:
+            application/json:
+              example:
+                book_item_id: 1
+                book_title: "Ruby on Rails Guide"
+                statistics_period:
+                  start_date: "2024-01-01"
+                  end_date: "2024-12-31"
+                total_income: 125.00
+                record_count: 25
+        "400":
+          description: Bad request (e.g., time format error, start date later than end date)
+          content:
+            application/json:
+              example:
+                error: "Start date cannot be later than end date"
+        "404":
+          description: BookItem not found
+          content:
+            application/json:
+              example:
+                error: "BookItem not found"
